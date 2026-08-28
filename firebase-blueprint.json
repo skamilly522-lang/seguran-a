@@ -1,0 +1,107 @@
+{
+  "entities": {
+    "EvaluationRecord": {
+      "title": "Evaluation Record",
+      "description": "A safety evaluation checklist record (GSD, GSA, or GSP)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "gabaritoType": { "type": "string", "enum": ["GSD", "GSA", "GSP"] },
+        "unit": { "type": "string", "maxLength": 120 },
+        "date": { "type": "string", "maxLength": 30 },
+        "evaluator": { "type": "string", "maxLength": 120 },
+        "semana": { "type": "string", "maxLength": 80 },
+        "vehiclePlate": { "type": "string", "maxLength": 30 },
+        "matricula": { "type": "string", "maxLength": 50 },
+        "employeeName": { "type": "string", "maxLength": 120 },
+        "employeeRole": { "type": "string", "maxLength": 60 },
+        "employeeType": { "type": "string", "enum": ["Novato", "Veterano"] },
+        "score": { "type": "number" },
+        "totalItems": { "type": "number" },
+        "totalOk": { "type": "number" },
+        "totalNok": { "type": "number" },
+        "totalNa": { "type": "number" },
+        "actionPlansCreatedCount": { "type": "number" },
+        "quickGestaoRef": { "type": "string", "maxLength": 120 },
+        "generalNotes": { "type": "string", "maxLength": 2000 }
+      },
+      "required": ["id", "gabaritoType", "unit", "date", "evaluator", "score"]
+    },
+    "ActionPlan": {
+      "title": "Action Plan",
+      "description": "Corrective action plan linked to a safety evaluation finding",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "evaluationId": { "type": "string", "maxLength": 128 },
+        "gabaritoType": { "type": "string", "enum": ["GSD", "GSA", "GSP"] },
+        "unit": { "type": "string", "maxLength": 120 },
+        "itemText": { "type": "string", "maxLength": 500 },
+        "problemDescription": { "type": "string", "maxLength": 1000 },
+        "actionRequired": { "type": "string", "maxLength": 1000 },
+        "responsible": { "type": "string", "maxLength": 120 },
+        "deadline": { "type": "string", "maxLength": 30 },
+        "status": { "type": "string", "enum": ["Pendente", "Em Andamento", "Concluido", "Atrasado"] },
+        "createdAt": { "type": "string", "maxLength": 30 },
+        "completedAt": { "type": "string", "maxLength": 30 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "questionId": { "type": "string", "maxLength": 128 }
+      },
+      "required": ["id", "evaluationId", "gabaritoType", "unit", "actionRequired", "responsible", "deadline", "status", "createdAt"]
+    },
+    "Employee": {
+      "title": "Collaborator / Employee",
+      "description": "Operational employee monitored for safety evaluations periodicity",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 120 },
+        "role": { "type": "string", "maxLength": 80 },
+        "unit": { "type": "string", "maxLength": 120 },
+        "matricula": { "type": "string", "maxLength": 50 },
+        "hireDate": { "type": "string", "maxLength": 30 },
+        "type": { "type": "string", "enum": ["Novato", "Veterano"] },
+        "gabaritoType": { "type": "string", "enum": ["GSD", "GSA", "GSP"] },
+        "lastEvaluationDate": { "type": "string", "maxLength": 30 },
+        "evaluationsCountInPeriod": { "type": "number" },
+        "nextEvaluationDueDate": { "type": "string", "maxLength": 30 },
+        "periodicityStatus": { "type": "string", "enum": ["EM_DIA", "ALERTA", "ATRASADO", "NOVATO_REQUER_AVALIACAO"] },
+        "assignedVehicle": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "enum": ["ATIVO", "FÉRIAS", "AFASTADO"] }
+      },
+      "required": ["id", "name", "role", "unit", "hireDate", "type", "gabaritoType", "nextEvaluationDueDate", "periodicityStatus"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User profile with role definition and metadata",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 120 },
+        "displayName": { "type": "string", "maxLength": 120 },
+        "role": { "type": "string", "enum": ["admin", "auditor", "supervisor", "viewer"] },
+        "createdAt": { "type": "string", "maxLength": 30 },
+        "updatedAt": { "type": "string", "maxLength": 30 }
+      },
+      "required": ["id", "email", "role"]
+    }
+  },
+  "firestore": {
+    "/evaluations/{evaluationId}": {
+      "schema": "EvaluationRecord",
+      "description": "Safety evaluation records collection"
+    },
+    "/actionPlans/{actionPlanId}": {
+      "schema": "ActionPlan",
+      "description": "Action plans collection linked to evaluations"
+    },
+    "/employees/{employeeId}": {
+      "schema": "Employee",
+      "description": "Operational team members tracked for evaluation periodicity"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Authenticated users and operational profiles"
+    }
+  }
+}

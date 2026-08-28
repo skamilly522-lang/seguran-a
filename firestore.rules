@@ -1,0 +1,116 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'skamilly522@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Validation for Evaluations
+    function isValidEvaluation(data) {
+      return data.id is string && isValidId(data.id) &&
+        data.gabaritoType in ['GSD', 'GSA', 'GSP'] &&
+        data.unit is string && data.unit.size() > 0 && data.unit.size() <= 120 &&
+        data.date is string && data.date.size() > 0 && data.date.size() <= 30 &&
+        data.evaluator is string && data.evaluator.size() > 0 && data.evaluator.size() <= 120 &&
+        data.score is number && data.score >= 0 && data.score <= 100;
+    }
+
+    // Validation for Action Plans
+    function isValidActionPlan(data) {
+      return data.id is string && isValidId(data.id) &&
+        data.evaluationId is string && isValidId(data.evaluationId) &&
+        data.gabaritoType in ['GSD', 'GSA', 'GSP'] &&
+        data.unit is string && data.unit.size() > 0 && data.unit.size() <= 120 &&
+        data.actionRequired is string && data.actionRequired.size() > 0 && data.actionRequired.size() <= 1000 &&
+        data.responsible is string && data.responsible.size() > 0 && data.responsible.size() <= 120 &&
+        data.deadline is string && data.deadline.size() > 0 && data.deadline.size() <= 30 &&
+        data.status in ['Pendente', 'Em Andamento', 'Concluido', 'Atrasado'] &&
+        data.createdAt is string && data.createdAt.size() > 0 && data.createdAt.size() <= 30;
+    }
+
+    // Validation for Employees
+    function isValidEmployee(data) {
+      return data.id is string && isValidId(data.id) &&
+        data.name is string && data.name.size() > 0 && data.name.size() <= 120 &&
+        data.role is string && data.role.size() > 0 && data.role.size() <= 80 &&
+        data.unit is string && data.unit.size() > 0 && data.unit.size() <= 120 &&
+        data.hireDate is string && data.hireDate.size() > 0 && data.hireDate.size() <= 30 &&
+        data.type in ['Novato', 'Veterano'] &&
+        data.gabaritoType in ['GSD', 'GSA', 'GSP'] &&
+        data.nextEvaluationDueDate is string && data.nextEvaluationDueDate.size() > 0 && data.nextEvaluationDueDate.size() <= 30 &&
+        data.periodicityStatus in ['EM_DIA', 'ALERTA', 'ATRASADO', 'NOVATO_REQUER_AVALIACAO'];
+    }
+
+    // Validation for User Profile
+    function isValidUserProfile(data) {
+      return data.id is string && isValidId(data.id) &&
+        data.email is string && data.email.size() > 0 && data.email.size() <= 120 &&
+        data.role in ['admin', 'auditor', 'supervisor', 'viewer'];
+    }
+
+    // Evaluations Collection
+    match /evaluations/{evaluationId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(evaluationId) && isValidEvaluation(incoming());
+      allow update: if isSignedIn() && isValidId(evaluationId) && isValidEvaluation(incoming());
+      allow delete: if isSignedIn() && isValidId(evaluationId);
+    }
+
+    // Action Plans Collection
+    match /actionPlans/{actionPlanId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(actionPlanId) && isValidActionPlan(incoming());
+      allow update: if isSignedIn() && isValidId(actionPlanId) && isValidActionPlan(incoming());
+      allow delete: if isSignedIn() && isValidId(actionPlanId);
+    }
+
+    // Employees Collection
+    match /employees/{employeeId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(employeeId) && isValidEmployee(incoming());
+      allow update: if isSignedIn() && isValidId(employeeId) && isValidEmployee(incoming());
+      allow delete: if isSignedIn() && isValidId(employeeId);
+    }
+
+    // User Profiles Collection
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidUserProfile(incoming());
+      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin()) && isValidId(userId) && isValidUserProfile(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // Admins Collection
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && (request.auth.uid == adminId || isAdmin());
+      allow list, create, update, delete: if isAdmin();
+    }
+  }
+}
