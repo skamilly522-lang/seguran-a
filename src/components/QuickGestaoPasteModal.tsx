@@ -128,7 +128,10 @@ export const QuickGestaoPasteModal: React.FC<QuickGestaoPasteModalProps> = ({
         detectedRef: quickGestaoRef,
         itemResponses: activeQuestions.map(q => ({
           questionId: q.id,
+          questionText: q.question,
+          category: q.category,
           status: 'OK' as const,
+          isCompliant: true,
           observation: ''
         })),
         nokItems: [] as { questionId: string; code: string; question: string; observation: string }[]
@@ -477,7 +480,9 @@ export const QuickGestaoPasteModal: React.FC<QuickGestaoPasteModalProps> = ({
         actionRequired: customData.action,
         responsible: customData.responsible || mName || finalEmployee || evaluator || 'Supervisor Operacional',
         deadline: customData.deadline,
-        status: 'Pendente'
+        status: 'Pendente',
+        createdAt: evalDate || new Date().toISOString().split('T')[0],
+        questionId: nokItem.questionId
       };
     });
 

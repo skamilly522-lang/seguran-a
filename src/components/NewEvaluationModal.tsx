@@ -132,7 +132,14 @@ export const NewEvaluationModal: React.FC<NewEvaluationModalProps> = ({
 
   const updateResponseStatus = (questionId: string, status: ResponseStatus) => {
     setResponses(prev => {
-      const current = prev[questionId] || {};
+      const current = prev[questionId] || {
+        status: 'OK',
+        observation: '',
+        actionPlanRequired: false,
+        actionPlanText: '',
+        responsible: '',
+        deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      };
       const isNok = status === 'NOK';
       return {
         ...prev,
@@ -145,14 +152,24 @@ export const NewEvaluationModal: React.FC<NewEvaluationModalProps> = ({
     });
   };
 
-  const updateResponseDetail = (questionId: string, field: string, value: any) => {
-    setResponses(prev => ({
-      ...prev,
-      [questionId]: {
-        ...(prev[questionId] || {}),
-        [field]: value
-      }
-    }));
+  const updateResponseDetail = (questionId: string, field: keyof ResponseItemState, value: any) => {
+    setResponses(prev => {
+      const current = prev[questionId] || {
+        status: 'OK',
+        observation: '',
+        actionPlanRequired: false,
+        actionPlanText: '',
+        responsible: '',
+        deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      };
+      return {
+        ...prev,
+        [questionId]: {
+          ...current,
+          [field]: value
+        }
+      };
+    });
   };
 
   // Calculate live Score
@@ -486,8 +503,15 @@ export const NewEvaluationModal: React.FC<NewEvaluationModalProps> = ({
             </h3>
 
             <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden bg-white">
-              {questionsList.map((q, idx) => {
-                const resp = responses[q.id] || { status: 'OK', observation: '' };
+              {questionsList.map((q) => {
+                const resp: ResponseItemState = responses[q.id] || {
+                  status: 'OK',
+                  observation: '',
+                  actionPlanRequired: false,
+                  actionPlanText: '',
+                  responsible: '',
+                  deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                };
                 const isNok = resp.status === 'NOK';
 
                 return (
