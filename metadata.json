@@ -1,0 +1,8 @@
+{
+  "name": "Copy of Dashboard de Segurança Operacional",
+  "description": "Dashboard unificado para gestão dos Gabaritos de Segurança (GSD, GSA, GSP), controle de periodicidade, planos de ação e faróis de conformidade.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
